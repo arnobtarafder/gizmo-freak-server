@@ -41,17 +41,16 @@ async function run() {
             const product = req.body;
 
             const tokenInfo = req.headers.authorization;
-            console.log(tokenInfo);
             const [email, accessToken] = tokenInfo?.split(" ");
 
             const decoded = verifyToken(accessToken)
 
             if (email === decoded.email) {
                 const result = await productCollection.insertOne(product);
-                res.send({ sucess: "Product Uploaded Successfully" })
+                res.send({ success: "Product Uploaded Successfully" })
             }
             else {
-                res.send({ sucess: "Unauthorized Access" })
+                res.send({ success: "Unauthorized Access" })
             }
 
         })
@@ -66,6 +65,21 @@ async function run() {
 
             const result = await orderCollection.insertOne(orderInfo);
             res.send({success: "order complete"})
+        })
+
+        app.get("/orderList", async(req, res) => {
+            const tokenInfo = req.headers.authorization;
+
+           const [email, accessToken] = tokenInfo?.split(" ");
+
+            const decoded = verifyToken(accessToken);
+            if (email === decoded.email) {
+                const orders = await orderCollection.find({email:email}).toArray()
+                res.send(orders)
+            }
+            else {
+                res.send({ success: "Unauthorized Access" })
+            }
         })
     }
     finally {
