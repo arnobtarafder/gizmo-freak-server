@@ -1,6 +1,7 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
+const jwt = require("jsonwebtoken")
 require("dotenv").config();
 
 const app = express();
@@ -11,6 +12,11 @@ app.use(cors());
 app.use(express.json())
 
 
+/** 
+ * client site collect email => send to backend
+ * abc@abstract.com  sl,aSA/sAS/.\<div className="asF">a;fasfm</div>
+ * asjbhafkasml\]'l'\asmanaw0m'\[aas,mf]  <======= decode
+ */
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.n63qw.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -21,7 +27,14 @@ async function run() {
         await client.connect();
         console.log("database connected");
 
-        const productCollection = client.db("gizmoFreak").collection("product")
+        const productCollection = client.db("gizmoFreak").collection("product");
+
+        app.post("/login", (req, res) => {
+            const email = req.body;
+
+            const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET)
+            res.send({token});
+        })
 
         app.post("/uploadProduct", async(req, res) => {
           const product = req.body;
