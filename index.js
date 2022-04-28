@@ -28,6 +28,7 @@ async function run() {
         console.log("database connected");
 
         const productCollection = client.db("gizmoFreak").collection("product");
+        const orderCollection = client.db("gizmoFreak").collection("orders");
 
         app.post("/login", (req, res) => {
             const email = req.body;
@@ -53,8 +54,18 @@ async function run() {
                 res.send({ sucess: "Unauthorized Access" })
             }
 
-            //   const result = await productCollection.insertOne(product);
-            //   res.send({success: "Product Uploaded Successfully"})
+        })
+
+        app.get("/products", async(req, res) => {
+            const products = await productCollection.find().toArray();
+            res.send(products);
+        })
+
+        app.post("/addOrder", async(req, res) => {
+            const orderInfo = req.body;
+
+            const result = await orderCollection.insertOne(orderInfo);
+            res.send({success: "order complete"})
         })
     }
     finally {
