@@ -23,7 +23,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 
 async function run() {
-    try{
+    try {
         await client.connect();
         console.log("database connected");
 
@@ -33,16 +33,31 @@ async function run() {
             const email = req.body;
 
             const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET)
-            res.send({token});
+            res.send({ token });
         })
 
-        app.post("/uploadProduct", async(req, res) => {
-          const product = req.body;
-          const result = await productCollection.insertOne(product);
-          res.send({success: "Product Uploaded Successfully"})
+        app.post("/uploadProduct", async (req, res) => {
+            const product = req.body;
+
+            const tokenInfo = req.headers.authorization;
+            console.log(tokenInfo);
+            const [email, accessToken] = tokenInfo?.split(" ");
+
+            const decoded = verifyToken(accessToken)
+
+            if (email === decoded.email) {
+                const result = await productCollection.insertOne(product);
+                res.send({ sucess: "Product Uploaded Successfully" })
+            }
+            else {
+                res.send({ sucess: "Unauthorized Access" })
+            }
+
+            //   const result = await productCollection.insertOne(product);
+            //   res.send({success: "Product Uploaded Successfully"})
         })
     }
-    finally{
+    finally {
 
     }
 }
@@ -58,3 +73,19 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
     console.log("Listening to the port", port + 2000);
 })
+
+
+// verify token function
+function verifyToken(Token) {
+    let email;
+    jwt.verify(Token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            email = "Invalid email"
+        }
+        if (decoded) {
+            console.log(decoded);
+            email = decoded
+        }
+    })
+    return email;
+}
